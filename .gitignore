@@ -4,3 +4,7 @@
 
 # Module directory
 .terraform/
+
+.DS_Store
+data/*
+bootstrap-scripts/env.rc
