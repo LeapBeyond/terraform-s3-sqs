@@ -7,6 +7,4 @@ cd $(dirname $0)/bootstrap-scripts
 cd ../terraform
 
 terraform init
-
-pwd
-ls -al ../data
+terraform apply
