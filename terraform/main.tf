@@ -53,29 +53,9 @@ resource "aws_s3_bucket_policy" "dropzone_write" {
 # output bucket policies
 # ----------------------------------------------------------------------------------------
 
-/*
-resource "aws_s3_bucket_policy" "b" {
-  bucket = "${aws_s3_bucket.b.id}"
-  policy =<<POLICY
-{
-  "Version": "2012-10-17",
-  "Id": "MYBUCKETPOLICY",
-  "Statement": [
-    {
-      "Sid": "IPAllow",
-      "Effect": "Deny",
-      "Principal": "*",
-      "Action": "s3:*",
-      "Resource": "arn:aws:s3:::my_tf_test_bucket/*",
-      "Condition": {
-         "IpAddress": {"aws:SourceIp": "8.8.8.8/32"}
-      }
-    }
-  ]
-}
-POLICY
-}
-*/
+# ----------------------------------------------------------------------------------------
+# SQS queue
+# ----------------------------------------------------------------------------------------
 
 resource "aws_sqs_queue" "s3_landing_queue" {
   name_prefix = "nifi_demo"
@@ -90,39 +70,25 @@ resource "aws_sqs_queue" "s3_landing_queue" {
   }
 }
 
-# resource "aws_sqs_queue_policy" "s3_landing_policy" {
-#   queue_url = "${aws_sqs_queue.s3_landing_queue.id}"
-#   policy = <<POLICY
-# {
-#   "Version": "2012-10-17",
-#   "Id": "arn:aws:sqs:eu-west-1:637081851720:poc_s3_landing/SQSDefaultPolicy",
-#   "Statement": [
-#     {
-#       "Sid": "Sid1487071327559",
-#       "Effect": "Allow",
-#       "Principal": "*",
-#       "Action": "SQS:SendMessage",
-#       "Resource": "arn:aws:sqs:eu-west-1:637081851720:poc_s3_landing",
-#       "Condition": {
-#         "ArnLike": {
-#           "aws:SourceArn": "arn:aws:s3:*:*:pocingestnhsd"
-#         }
-#       }
-#     },
-#     {
-#       "Sid": "Sid1487080416052",
-#       "Effect": "Allow",
-#       "Principal": {
-#         "AWS": "arn:aws:iam::637081851720:user/cds.provider"
-#       },
-#       "Action": [
-#         "SQS:ReceiveMessage",
-#         "SQS:DeleteMessage",
-#         "SQS:GetQueueAttributes"
-#       ],
-#       "Resource": "arn:aws:sqs:eu-west-1:637081851720:poc_s3_landing"
-#     }
-#   ]
-# }
-# POLICY
-# }
+data "template_file" "sqs_policy" {
+  template = "${file("policies/sqs-policy.json.tpl")}"
+
+  vars {
+    bucket_arn  = "${aws_s3_bucket.s3_landing.arn}"
+    queue_arn = "${aws_sqs_queue.s3_landing_queue.arn}"
+  }
+}
+
+resource "aws_sqs_queue_policy" "s3_landing_policy" {
+  queue_url = "${aws_sqs_queue.s3_landing_queue.id}"
+  policy = "${data.template_file.sqs_policy.rendered}"
+}
+
+resource "aws_s3_bucket_notification" "bucket_notification" {
+  bucket = "${aws_s3_bucket.s3_landing.id}"
+
+  queue {
+    queue_arn     = "${aws_sqs_queue.s3_landing_queue.arn}"
+    events        = ["s3:ObjectCreated:*"]
+  }
+}
