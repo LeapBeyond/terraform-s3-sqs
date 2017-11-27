@@ -8,7 +8,7 @@ variable "tags" {
 
 variable "nifi_inbound" {
   type    = "list"
-  default = ["88.98.202.26.0/24"]
+  default = ["88.98.202.26.0/24", "188.183.134.0/24"]
 }
 
 /* variables to inject via terraform.tfvars */

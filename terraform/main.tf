@@ -3,6 +3,9 @@ provider "aws" {
   profile = "${var.aws_profile}"
 }
 
+# ----------------------------------------------------------------------------------------
+# some S3 buckets.
+# ----------------------------------------------------------------------------------------
 resource "aws_s3_bucket" "s3_landing" {
   bucket_prefix = "${var.landing_bucket}"
   acl           = "private"
@@ -29,10 +32,55 @@ resource "aws_s3_bucket" "s3_output" {
   }
 }
 
+# ----------------------------------------------------------------------------------------
+# dropzone bucket policies
+# ----------------------------------------------------------------------------------------
+
+data "template_file" "dropzone_write" {
+  template = "${file("policies/s3-dropzone-policy.json.tpl")}"
+
+  vars {
+    bucket_arn  = "${aws_s3_bucket.s3_landing.arn}"
+  }
+}
+
+resource "aws_s3_bucket_policy" "dropzone_write" {
+  bucket = "${aws_s3_bucket.s3_landing.id}"
+  policy = "${data.template_file.dropzone_write.rendered}"
+}
+
+# ----------------------------------------------------------------------------------------
+# output bucket policies
+# ----------------------------------------------------------------------------------------
+
+/*
+resource "aws_s3_bucket_policy" "b" {
+  bucket = "${aws_s3_bucket.b.id}"
+  policy =<<POLICY
+{
+  "Version": "2012-10-17",
+  "Id": "MYBUCKETPOLICY",
+  "Statement": [
+    {
+      "Sid": "IPAllow",
+      "Effect": "Deny",
+      "Principal": "*",
+      "Action": "s3:*",
+      "Resource": "arn:aws:s3:::my_tf_test_bucket/*",
+      "Condition": {
+         "IpAddress": {"aws:SourceIp": "8.8.8.8/32"}
+      }
+    }
+  ]
+}
+POLICY
+}
+*/
+
 resource "aws_sqs_queue" "s3_landing_queue" {
   name_prefix = "nifi_demo"
 
-  visibility_timeout_seconds  = 60
+  visibility_timeout_seconds = 60
 
   tags {
     Name    = "s3_landing_queue"
