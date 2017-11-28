@@ -2,7 +2,7 @@
 
 cd $(dirname $0)
 
-. ../bootstrap-scripts/env.rc
+. ../../bootstrap-scripts/env.rc
 
 BUCKET=lb-nifi-demo-landing20171124175225028000000002
 
