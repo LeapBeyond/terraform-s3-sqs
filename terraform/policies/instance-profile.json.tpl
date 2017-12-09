@@ -62,7 +62,8 @@
             "sqs:ListQueueTags",
             "sqs:GetQueueUrl",
             "sqs:GetQueueAttributes",
-            "sqs:ListDeadLetterSourceQueues"
+            "sqs:ListDeadLetterSourceQueues",
+            "sqs:DeleteMessage"
          ],
          "Resource":"${queue_arn}"
       },
