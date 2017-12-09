@@ -6,13 +6,11 @@ variable "tags" {
   }
 }
 
-# 213.205.252.0/24 - tethered to my phone
-# 188.183.134.0/24 - airbnb
-# 88.98.202.0/24 - ???
+# 185.10.221.0/24 - airbnb
 # 94.101.220.0/24 - NZ guest network
 variable "nifi_inbound" {
   type    = "list"
-  default = ["88.98.202.0/24", "188.183.134.0/24", "213.205.252.0/24", "94.101.220.0/24"]
+  default = ["185.10.221.0/24", "94.101.220.0/24"]
 }
 
 variable "nifi_user" {
@@ -24,7 +22,8 @@ variable "nifi_ami_name" {
 }
 
 variable "nifi_instance_type" {
-  default = "t2.medium"
+  #  default = "t2.medium"
+  default = "t2.micro"
 }
 
 variable "root_vol_size" {

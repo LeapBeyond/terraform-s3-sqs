@@ -28,15 +28,8 @@ data "aws_vpc" "bastion_vpc" {
   cidr_block = "${var.bastion_vpc_cidr}"
 }
 
-data "aws_iam_policy_document" "ec2-service-role-policy" {
-  statement {
-    actions = ["sts:AssumeRole"]
-
-    principals {
-      type        = "Service"
-      identifiers = ["ec2.amazonaws.com"]
-    }
-  }
+data "template_file" "assume_policy" {
+  template = "${file("${path.module}/policies/iam_assume_policy.json.tpl")}"
 }
 
 # TODO: parameterise that nacl
@@ -87,7 +80,7 @@ sudo -u nifi sh -c 'cd ~nifi; ln -s nifi-1.4.0 nifi'
 ~nifi/nifi/bin/nifi.sh install
 printf "\n\nexport JAVA_HOME=/usr/lib/jvm/jre-1.8.0-openjdk\n" >> ~nifi/nifi/bin/nifi-env.sh
 sed -i 's/run.as=.*/run.as=nifi/' ~nifi/nifi/conf/bootstrap.conf
-service nifi start
+#service nifi start
 EOF
 }
 
@@ -131,12 +124,27 @@ resource "aws_security_group" "nifi_ssh" {
   }
 }
 
+data "template_file" "instance_profile" {
+  template = "${file("policies/instance-profile.json.tpl")}"
+
+  vars {
+    bucket_arn = "${aws_s3_bucket.s3_landing.arn}"
+    queue_arn  = "${aws_sqs_queue.s3_landing_queue.arn}"
+    output_bucket_arn = "${aws_s3_bucket.s3_output.arn}"
+  }
+}
+
 resource "aws_iam_role" "nifi_role" {
   name_prefix           = "nifi"
   path                  = "/"
-  description           = "roles polices the nifi instance can use"
   force_detach_policies = true
-  assume_role_policy    = "${data.aws_iam_policy_document.ec2-service-role-policy.json}"
+  assume_role_policy    = "${data.template_file.assume_policy.rendered}"
+}
+
+resource "aws_iam_role_policy" "nifi" {
+  name_prefix = "nifi"
+  role        = "${aws_iam_role.nifi_role.id}"
+  policy      = "${data.template_file.instance_profile.rendered}"
 }
 
 resource "aws_iam_instance_profile" "nifi_profile" {
@@ -144,7 +152,6 @@ resource "aws_iam_instance_profile" "nifi_profile" {
   role        = "${aws_iam_role.nifi_role.name}"
 }
 
-// TODO: "sudo service nifi start"
 # ----------------------------------------------------------------------------------------
 # some S3 buckets.
 # ----------------------------------------------------------------------------------------
