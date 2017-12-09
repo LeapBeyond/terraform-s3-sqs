@@ -22,8 +22,7 @@ variable "nifi_ami_name" {
 }
 
 variable "nifi_instance_type" {
-  #  default = "t2.medium"
-  default = "t2.micro"
+  default = "t2.medium"
 }
 
 variable "root_vol_size" {

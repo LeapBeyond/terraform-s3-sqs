@@ -9,3 +9,7 @@ output "s3_output" {
 output "sqs_queue" {
   value = "${aws_sqs_queue.s3_landing_queue.arn}"
 }
+
+output "nifi_public_dns" {
+  value = "${aws_instance.nifi.public_dns}"
+}

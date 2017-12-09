@@ -80,7 +80,7 @@ sudo -u nifi sh -c 'cd ~nifi; ln -s nifi-1.4.0 nifi'
 ~nifi/nifi/bin/nifi.sh install
 printf "\n\nexport JAVA_HOME=/usr/lib/jvm/jre-1.8.0-openjdk\n" >> ~nifi/nifi/bin/nifi-env.sh
 sed -i 's/run.as=.*/run.as=nifi/' ~nifi/nifi/conf/bootstrap.conf
-#service nifi start
+service nifi start
 EOF
 }
 
@@ -124,6 +124,15 @@ resource "aws_security_group" "nifi_ssh" {
   }
 }
 
+# create the IAM role
+resource "aws_iam_role" "nifi_role" {
+  name_prefix           = "nifi"
+  path                  = "/"
+  force_detach_policies = true
+  assume_role_policy    = "${data.template_file.assume_policy.rendered}"
+}
+
+# Read the template file and inject ARNs
 data "template_file" "instance_profile" {
   template = "${file("policies/instance-profile.json.tpl")}"
 
@@ -134,19 +143,14 @@ data "template_file" "instance_profile" {
   }
 }
 
-resource "aws_iam_role" "nifi_role" {
-  name_prefix           = "nifi"
-  path                  = "/"
-  force_detach_policies = true
-  assume_role_policy    = "${data.template_file.assume_policy.rendered}"
-}
-
+# attach the policy JSON to the role
 resource "aws_iam_role_policy" "nifi" {
   name_prefix = "nifi"
   role        = "${aws_iam_role.nifi_role.id}"
   policy      = "${data.template_file.instance_profile.rendered}"
 }
 
+# attach the role to the instance
 resource "aws_iam_instance_profile" "nifi_profile" {
   name_prefix = "nifi"
   role        = "${aws_iam_role.nifi_role.name}"
