@@ -23,7 +23,7 @@ An additional bit of NiFi manual fiddling - an `AWSCredentialsProviderController
 *TODO:* There is currently a bug, and NiFi is not correctly accessing SQS using the EC2 role - the role itself is working for the `nifi` user, but somehow the NiFi glue code is passing along an invalid request
 
 ## License
-Copyright 2017 Leap Beyond Analytics
+Copyright 2017 Leap Beyond Emerging Technologies B.V.
 
 Licensed under the Apache License, Version 2.0 (the "License");
 you may not use this file except in compliance with the License.
