@@ -21,3 +21,18 @@ Note that it takes a non-trivial time for NiFi to be downloaded, installed and s
 An additional bit of NiFi manual fiddling - an `AWSCredentialsProviderControllerService` has to be added to the running instance so that NiFi will use the instance role, and all three of the AWS processors updated to use this provider.
 
 *TODO:* There is currently a bug, and NiFi is not correctly accessing SQS using the EC2 role - the role itself is working for the `nifi` user, but somehow the NiFi glue code is passing along an invalid request
+
+## License
+Copyright 2017 Leap Beyond Emerging Technologies B.V.
+
+Licensed under the Apache License, Version 2.0 (the "License");
+you may not use this file except in compliance with the License.
+You may obtain a copy of the License at
+
+   http://www.apache.org/licenses/LICENSE-2.0
+
+Unless required by applicable law or agreed to in writing, software
+distributed under the License is distributed on an "AS IS" BASIS,
+WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+See the License for the specific language governing permissions and
+limitations under the License.
